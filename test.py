@@ -1,5 +1,7 @@
 from tensorflow.keras.models import load_model
 import tensorflow as tf
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from tensorflow.python.keras.backend import set_session
 import numpy as np
 from PIL import Image
@@ -66,44 +68,6 @@ def main():
     print("Done")
 
     print("Now classifying files in", VALID_PATH)
-
-#   sample_files = os.listdir(VALID_PATH)
-#   for directory in sample_files:
-#     for img in os.listdir(os.path.join(VALID_PATH,directory)):
-#         filename = os.path.join(config.TEST_FOLDER,directory, img)
-#         img = load_image(filename, array=False)
-#         label,prob,_ = classify(model, img)
-#         print("We think with certainty %3.2f that image %s is %s."%(prob, filename, label))
-
-
-
-    # folder_results = defaultdict(lambda: defaultdict(int))
-    # total_images = defaultdict(int)
-
-    # for directory in os.listdir(config.TEST_FOLDER):
-    #     dir_path = os.path.join(config.TEST_FOLDER, directory)
-    #     if os.path.isdir(dir_path):
-    #         for img in os.listdir(dir_path):
-    #             filename = os.path.join(dir_path, img)
-    #             img = load_image(filename, array=False)
-    #             label, prob, _ = classify(model, img)
-    #             folder_results[directory][label] += 1
-    #             total_images[directory] += 1
-
-    # # Print overall results
-    # print("\nClassification Results by Folder:")
-    # for folder, results in folder_results.items():
-    #     print(f"\nFolder: {folder}")
-    #     print(f"Total images: {total_images[folder]}")
-    #     print("Class distribution:")
-    #     for label, count in results.items():
-    #         percentage = (count / total_images[folder]) * 100
-    #         print(f"  {label}: {count} ({percentage:.2f}%)")
-        
-    #     # Determine the majority class
-    #     majority_class = max(results, key=results.get)
-    #     majority_percentage = (results[majority_class] / total_images[folder]) * 100
-    #     print(f"Majority class: {majority_class} ({majority_percentage:.2f}%)")
 
     for directory in os.listdir(VALID_PATH):
         folder_path = os.path.join(VALID_PATH, directory)
