@@ -46,7 +46,7 @@ class Config:
         self.NUM_CLASSES = len(self.CLASSES)
 
         self.LEARNING_RATE = 0.001
-        self.BATCH_SIZE = 64
+        self.BATCH_SIZE = 4
         self.EPOCHS = 7
 
         self.MODEL_PATH = os.path.join(self.MODEL_FOLDER, "model.h5")

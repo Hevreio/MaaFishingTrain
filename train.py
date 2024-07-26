@@ -2,9 +2,10 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # import config
 import sys 
-sys.path.append('/root/SWS3009_team_astra/')
+# sys.path.append('/root/SWS3009_team_astra/')
 from global_config import Config
 from tensorflow.keras.applications.resnet_v2 import ResNet101V2, ResNet50V2, ResNet152V2
+from tensorflow.keras.applications.efficientnet import EfficientNetB2
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -14,7 +15,7 @@ from tensorflow.keras.optimizers import SGD
 
 
 config = Config()
-config.terrain_params()
+# config.terrain_params()
 config.training_params()
 
 MODEL_PATH = config.MODEL_PATH
@@ -24,10 +25,39 @@ TRAIN_DIR = config.TRAIN_FOLDER
 VAL_DIR = config.VAL_FOLDER
 BATCH_SIZE = config.BATCH_SIZE
 
+def load_dataset():
+    train_datagen = ImageDataGenerator(rescale=1./255)
+    val_datagen = ImageDataGenerator(rescale=1./255)
+    test_datagen = ImageDataGenerator(rescale=1./255)
+
+    train_generator = train_datagen.flow_from_directory(
+        config.TRAIN_FOLDER,
+        target_size=(224, 224),
+        batch_size=config.BATCH_SIZE,
+        class_mode='categorical'
+    )
+
+    val_generator = val_datagen.flow_from_directory(
+        config.VAL_FOLDER,
+        target_size=(224, 224),
+        batch_size=config.BATCH_SIZE,
+        class_mode='categorical'
+    )
+
+    test_generator = test_datagen.flow_from_directory(
+        config.TEST_FOLDER,
+        target_size=(224, 224),
+        batch_size=config.BATCH_SIZE,
+        class_mode='categorical'
+    )
+
+    return train_generator, val_generator, test_generator
+
 # create the base pre-trained model
 def create_model(num_hidden, num_classes):
 
     base_model = ResNet50V2(weights='imagenet', include_top=False)
+    # base_model = EfficientNetB2(weights='imagenet', include_top=False)
 
     # add a global spatial average pooling layer
     x = base_model.output
@@ -76,10 +106,12 @@ def train(model_file, train_path, validation_path, num_hidden=200, num_classes=c
     # prepare data augmentation configuration
     train_datagen = ImageDataGenerator(
         rescale=1. / 255,
-        shear_range=0.2,
-        zoom_range=0.2,
+        # shear_range=0.2,
+        # zoom_range=0.2,
         horizontal_flip=True,
-        vertical_flip=True
+        vertical_flip=True,
+        rotation_range=180,
+        fill_mode='nearest'
         )
 
     test_datagen = ImageDataGenerator(rescale=1. / 255)
@@ -102,10 +134,10 @@ def train(model_file, train_path, validation_path, num_hidden=200, num_classes=c
 
     model.fit(
         train_generator,
-        steps_per_epoch=steps,
+        steps_per_epoch=None,
         epochs=num_epochs,
         validation_data=validation_generator,
-        validation_steps=50,
+        validation_steps=5,
         callbacks=[checkpoint]
     )
 
@@ -123,7 +155,7 @@ def train(model_file, train_path, validation_path, num_hidden=200, num_classes=c
         epochs=num_epochs - 3 ,
         callbacks=[checkpoint],
         validation_data=validation_generator,
-        validation_steps=50
+        validation_steps=10
     )
 
 def main():

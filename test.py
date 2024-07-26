@@ -11,7 +11,7 @@ import os
 from tqdm import tqdm
 
 config = Config()
-config.terrain_params()
+# config.terrain_params()
 config.training_params()
 
 # Load the model
@@ -20,7 +20,7 @@ config.training_params()
 MODEL_NAME = config.MODEL_PATH
 VALID_PATH = config.TEST_FOLDER
 
-dict={0:'tile',1:'brick',2:'wood',3:'cement',4:'yellow buffer',5:'gravel'}
+dict={0:'miss',1:'in',2:'perfect'}
 
 def classify(model, image):
     result = model.predict(image)
