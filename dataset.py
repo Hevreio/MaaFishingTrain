@@ -44,7 +44,7 @@ def show_roi(roi):
         for img in os.listdir(config.FRAME_FOLDER):
             image = cv2.imread(os.path.join(config.FRAME_FOLDER, img))
 
-            sub_image = image[roi[0]:roi[0]+roi[2], roi[1]:roi[1]+roi[3]]
+            sub_image = image[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
             cv2.imshow("sub_image", sub_image)
             key = cv2.waitKey(0)
             if key == ord('q'):
@@ -77,6 +77,20 @@ def pick_roi():
         print(f"Error: {e}")
     finally:
         cv2.destroyAllWindows()
+
+def crop_roi(roi):
+    if not os.path.exists(os.path.join(config.FRAME_FOLDER, "cropped")):
+        os.makedirs(os.path.join(config.FRAME_FOLDER, "cropped"))
+    try:
+        for img in os.listdir(os.path.join(config.FRAME_FOLDER,"尘白禁区(2)")):
+            image = cv2.imread(os.path.join(config.FRAME_FOLDER,"尘白禁区(2)", img))
+            sub_image = image[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
+            cv2.imwrite(os.path.join(config.FRAME_FOLDER, "cropped", img), sub_image)
+    except Exception as e:
+        print(f"Error: {e}")
+        cv2.destroyAllWindows()
+
+    
 
 def extract_frames_from_folder(video_folder=config.VIDEO_FOLDER, output_folder=config.FRAME_FOLDER, interval=3):
     if not os.path.exists(output_folder):
@@ -190,3 +204,7 @@ if __name__ == "__main__":
         build_dataset(config.FRAME_FOLDER, config.DATASET_FOLDER)
     elif args.delete_similar_frames:
         delete_similar_frames(config.FRAME_FOLDER)
+
+roi = config.ROI
+# show_roi(roi)
+crop_roi(roi)
