@@ -50,6 +50,7 @@ class Config:
         self.EPOCHS = 7
 
         self.MODEL_PATH = os.path.join(self.MODEL_FOLDER, "model.h5")
+        self.ROI = (1589,232,552,543)
 
         # imu params
         # designating the folders in the classification folder

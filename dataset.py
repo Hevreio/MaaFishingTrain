@@ -12,12 +12,12 @@ from skimage.morphology import disk
 from skimage.color import rgb2gray
 from skimage.metrics import structural_similarity as ssim
 import sys 
-sys.path.append('/root/SWS3009_team_astra/')
+# sys.path.append('/root/SWS3009_team_astra/')
 from global_config import Config
 
 config = Config()
 config.training_params()
-config.terrain_params()
+# config.terrain_params()
 
 
 def extract_frames(video_path, output_folder, interval=3):
@@ -39,32 +39,44 @@ def extract_frames(video_path, output_folder, interval=3):
 
     video.release()
 
+def show_roi(roi):
+    try:
+        for img in os.listdir(config.FRAME_FOLDER):
+            image = cv2.imread(os.path.join(config.FRAME_FOLDER, img))
 
-def delete_low_entropy_frames(image_folder=config.FRAME_FOLDER, threshold=2.5):
-    images = []
-    filenames = []
+            sub_image = image[roi[0]:roi[0]+roi[2], roi[1]:roi[1]+roi[3]]
+            cv2.imshow("sub_image", sub_image)
+            key = cv2.waitKey(0)
+            if key == ord('q'):
+                break
+            cv2.destroyAllWindows()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cv2.destroyAllWindows()
 
-    for class_name in os.listdir(image_folder):
-        for image_name in os.listdir(os.path.join(image_folder, class_name)):
-            image_path = os.path.join(image_folder, class_name, image_name)
-            if os.path.isfile(image_path):
-                images.append(cv2.imread(image_path))
-                filenames.append(image_path)
-                print(f"Loaded {image_path}")
+def pick_roi():
+    try:
+        for img in os.listdir(config.FRAME_FOLDER):
+            image = cv2.imread(os.path.join(config.FRAME_FOLDER, img))
+            print("--------- HL截取ROI区域的测试 ---------")
+            print("鼠标选择ROI,然后点击 enter键")
+            r = cv2.selectROI('org', image, False)  # ,返回 (x_min, y_min, w, h)
 
-    num_images = len(images)
-    to_delete = set()
-
-    for i in range(num_images):
-        img_gray = cv2.cvtColor(images[i], cv2.COLOR_BGR2GRAY)
-        img_entropy = entropy(img_gray, disk(5))
-        print(f"Entropy: {img_entropy}")
-        if img_entropy < threshold:
-            to_delete.add(filenames[i])
-            print(f"Deleting {filenames[i]}")
-    for filepath in to_delete:
-        os.remove(filepath)
-        print(f"Deleted {filepath}")
+            # roi区域
+            roi = image[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
+            cv2.imshow('ROI',roi)#显示ROI区域
+            print(f"ROI: {r}")
+            # sub_image = image[roi[0]:roi[0]+roi[2], roi[1]:roi[1]+roi[3]]
+            # cv2.imshow("sub_image", sub_image)
+            key = cv2.waitKey(0)
+            if key == ord('q'):
+                break
+            cv2.destroyAllWindows()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cv2.destroyAllWindows()
 
 def extract_frames_from_folder(video_folder=config.VIDEO_FOLDER, output_folder=config.FRAME_FOLDER, interval=3):
     if not os.path.exists(output_folder):
@@ -131,48 +143,6 @@ def build_dataset(image_folder, output_folder):
                 # construct the path to the destination image and then copy the image itself
                 p = os.path.sep.join([labelPath, filename])
                 shutil.copy2(inputPath, p)
-
-def delete_similar_frames(image_folder, threshold=0.9):
-    
-    images = []
-    filenames = []
-
-    for class_name in os.listdir(image_folder):
-        for image_name in os.listdir(os.path.join(image_folder, class_name)):
-            image_path = os.path.join(image_folder, class_name, image_name)
-            # if os.path.isfile(image_path):
-            images.append(cv2.imread(image_path))
-            filenames.append(image_path)
-            print(f"Loaded {image_path}")
-            
-            num_images = len(images)
-            to_delete = set()
-
-            
-            for i in range(num_images):
-                # print(f"Comparing {filenames[i]}")
-                for j in range(i + 1, num_images):
-                    # print(f"Comparing {filenames[j]}\n")
-                    if filenames[j] in to_delete:
-                        continue
-
-                    # img1_gray = cv2.cvtColor(images[i], cv2.COLOR_BGR2GRAY)
-                    # img2_gray = cv2.cvtColor(images[j], cv2.COLOR_BGR2GRAY)
-                    # img1_gray = np.sqeeze(images[i])
-                    # img2_gray = np.sqeeze(images[j])
-
-                    # win_size = min(img1_gray.shape[0], img2_gray.shape[0],7)
-                   
-                    score = ssim(images[i], images[j], channel_axis=2)
-                    print(f"SSIM score: {score}")
-                    if score > threshold:
-                        to_delete.add(filenames[j])
-                        print(f"Deleting {filenames[j]}")
-                for filepath in to_delete:
-                    os.remove(filepath)
-                    print(f"Deleted {filepath}")
-
-
                     
 
 def load_dataset():
@@ -210,6 +180,7 @@ if __name__ == "__main__":
     parser.add_argument('--extract_frames','-e',type=bool, default=False)
     parser.add_argument('--build_dataset','-b', type=bool, default=False)
     parser.add_argument('--delete_similar_frames','-d', type=bool, default=False)
+    parser.add_argument('--show_roi','-s', type=bool, default=False)
 
 
     args = parser.parse_args()
@@ -219,5 +190,3 @@ if __name__ == "__main__":
         build_dataset(config.FRAME_FOLDER, config.DATASET_FOLDER)
     elif args.delete_similar_frames:
         delete_similar_frames(config.FRAME_FOLDER)
-    
-    
